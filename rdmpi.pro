@@ -1,5 +1,5 @@
 pro rdmpi,pv,datapath=datapath,current=current,flag_double=flag_double,$
-           time_step=time_step,flag_az=flag_az,flag_te=flag_te
+           time_step=time_step,flag_az=flag_az,flag_te=flag_te,var=var
   Compile_Opt DEFINT32  
   if(n_elements(datapath)eq 0 ) then datapath="tmp/" else datapath=datapath+"/"
   if(n_elements(current) eq 0) then current=0
@@ -7,6 +7,7 @@ pro rdmpi,pv,datapath=datapath,current=current,flag_double=flag_double,$
   if(n_elements(time_step) eq 0) then time_step=-1
   if(n_elements(flag_az) eq 0) then flag_az = 0 ;; vector potential (for 2D)
   if(n_elements(flag_te) eq 0) then flag_te = 0 ;; temperature
+  if(n_elements(var) eq 0) then var = [] ;; selected variables
   
   get_param2,datapath,info
   gm=info.gm
@@ -43,10 +44,13 @@ pro rdmpi,pv,datapath=datapath,current=current,flag_double=flag_double,$
         flag_afr=1
      end
   end
+
+;Snow
+if (n_elements(var) ne 0) then nvar=n_elements(var)
   
   pv=create_struct(pv,["eqs","fl_mhd","fl_pip","fl_afr"], $
                    eqs,flag_mhd,flag_pip,flag_afr)
-  
+
   tfile=file_search(datapath+"t.dac.*")
   dacget0s,tfile,t,narg=time_step
   if(eqs eq "AFR") then begin
@@ -57,7 +61,8 @@ pro rdmpi,pv,datapath=datapath,current=current,flag_double=flag_double,$
   ix=info.ix
   jx=info.jx
   kx=info.kx
-  
+
+
   if (where(tag_names(info) eq "MPI_DOMAINS"))[0] ne -1 then begin
      mpi_x=info.mpi_domains[0]
      mpi_y=info.mpi_domains[1]
@@ -128,6 +133,8 @@ pro rdmpi,pv,datapath=datapath,current=current,flag_double=flag_double,$
             time_step,datapath    
   endif  
 
+;Snow
+if (n_elements(var) eq 0) then begin
   if (flag_pip eq 1 or flag_mhd eq 0) then begin
      add_pv,pv,["ro_n","en_n","mx_n","my_n","mz_n"] ,0,var_names,$
             mpi_x,mpi_y,mpi_z,margin,ix_m,jx_m,kx_m,$
@@ -138,6 +145,14 @@ pro rdmpi,pv,datapath=datapath,current=current,flag_double=flag_double,$
             1,var_names,mpi_x,mpi_y,mpi_z,margin,ix_m,jx_m,kx_m,$
             time_step,datapath
   endif
+
+endif else begin
+     add_pv_var,pv,var ,0,var_names,$
+            mpi_x,mpi_y,mpi_z,margin,ix_m,jx_m,kx_m,$
+            time_step,datapath   
+;help,pv,/str
+endelse
+
 ;===============================================-
 ; Non-ideal terms
 ;===============================================
@@ -263,7 +278,7 @@ print, 'ION'
      endif
   endif
   
-  pv=create_struct(pv,["var_names"], var_names)
-  if current eq 1 then get_cur,pv
+;  pv=create_struct(pv,["var_names"], var_names)
+;  if current eq 1 then get_cur,pv
   close,/all
 end
