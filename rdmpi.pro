@@ -217,7 +217,7 @@ print, 'ION'
 ;+ $
 ;                          string(indgen(n_cpu),form="(i4.4)"))
 ;          mpi_read,rec1,files,mpi_x,mpi_y,mpi_z,margin,ix_m,jx_m,kx_m,time_step=time_step[np]
-	mpi_read,ion1,files,mpi_x,mpi_y,mpi_z,margin,ix_m,jx_m,kx_m
+	mpi_read,rec1,files,mpi_x,mpi_y,mpi_z,margin,ix_m,jx_m,kx_m
           rec[*,*,*,np]=rec1
         endfor
         pv=create_struct(pv,["ion"], reform(ion))  
