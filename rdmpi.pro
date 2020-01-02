@@ -181,7 +181,7 @@ endelse
      endif
   endif
 
-  if (info.flag_ir mod 10) ge 1  then begin
+  if (((info.flag_ir mod 10) ge 1) and (info.flag_pip ge 1))  then begin
      flag_ir=1
 ;     print, 'hi'
 ;        files=file_search(datapath+"/"+string(time_step,form="(i4.4)")+"ion.dac.*")
