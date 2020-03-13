@@ -280,5 +280,27 @@ print, 'ION'
   
 ;  pv=create_struct(pv,["var_names"], var_names)
 ;  if current eq 1 then get_cur,pv
+
+  if current eq 1 then begin
+	print,'CURRENT ONLY WORKS IN 2D AT PRESENT'
+	j_x=dblarr(ix,jx,kx,n_read)
+	j_y=dblarr(ix,jx,kx,n_read)
+	j_z=dblarr(ix,jx,kx,n_read)
+	dx=abs(pv.x[1]-pv.x[0]) ; grid point size
+	dy=abs(pv.y[1]-pv.y[0])
+        for np=0,n_read-1 do begin
+		j_x[2:(ix-3),2:(jx-3),np]=(-pv.Bz[2:(ix-3),4:(jx-1),np]+8.*pv.Bz[2:(ix-3),3:(jx-2),np]-8.*pv.Bz[2:(ix-3),1:(jx-4),np]+pv.Bz[2:(ix-3),0:(jx-5),np])/(12.*dy)
+
+		j_y[2:(ix-3),2:(jx-3),np]=-(-pv.Bz[4:(ix-1),2:(jx-3),np]+8.*pv.Bz[3:(ix-2),2:(jx-3),np]-8.*pv.Bz[1:(ix-4),2:(jx-3),np]+pv.Bz[0:(ix-5),2:(jx-3),np])/(12.*dx)
+
+		j_z[2:(ix-3),2:(jx-3),np]=(-pv.By[4:(ix-1),2:(jx-3),np]+8.*pv.By[3:(ix-2),2:(jx-3),np]-8.*pv.By[1:(ix-4),2:(jx-3),np]+pv.By[0:(ix-5),2:(jx-3),np])/(12.*dx) - $
+		(-pv.Bx[2:(ix-3),4:(jx-1),np]+8.*pv.Bx[2:(ix-3),3:(jx-2),np]-8.*pv.Bx[2:(ix-3),1:(jx-4),np]+pv.Bx[2:(ix-3),0:(jx-5),np])/(12.*dy)
+	endfor
+        pv = create_struct(pv,["j_x"],reform(j_x))
+        pv = create_struct(pv,["j_y"],reform(j_y))
+        pv = create_struct(pv,["j_z"],reform(j_z))
+  endif
+
+
   close,/all
 end
