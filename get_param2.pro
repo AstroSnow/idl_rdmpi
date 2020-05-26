@@ -126,6 +126,10 @@ pro get_param2,path,info
            in=long(strcompress(tmp2[1],/remove_all))
            info=create_struct(info,key,in)
         end
+        'T_norm':begin
+           in=long(strcompress(tmp2[1],/remove_all))
+           info=create_struct(info,key,in)
+        end
         else:
      endcase
   end

@@ -218,6 +218,7 @@ print, 'ION'
 print, 'ION'
 	pv=create_struct(pv,["flag_ir"], info.flag_ir)
 	pv=create_struct(pv,["flag_ir_type"], info.flag_ir_type) 
+	pv=create_struct(pv,["T0"], info.T_norm) 
         for np=0,n_read-1 do begin
         files=file_search(datapath+"/"+string(time_step[np],form="(i4.4)")+"ion.dac.*")
 ;+ $
