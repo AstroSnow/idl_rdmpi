@@ -216,6 +216,8 @@ print, 'ION'
            rec=dblarr(ix,jx,kx,n_read)
         endelse                   
 print, 'ION'
+	pv=create_struct(pv,["flag_ir"], info.flag_ir)
+	pv=create_struct(pv,["flag_ir_type"], info.flag_ir_type) 
         for np=0,n_read-1 do begin
         files=file_search(datapath+"/"+string(time_step[np],form="(i4.4)")+"ion.dac.*")
 ;+ $
