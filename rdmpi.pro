@@ -194,7 +194,7 @@ endelse
 ;        flag_ir=0
 ;        catch,/cancel
 ;     endif 
-     if flag_ir eq 1 then begin
+     if ((flag_ir eq 1) AND (flag_pip eq 1)) then begin
         ir_flag=info.flag_ir mod 10
         if ir_flag eq 1 then begin
            ion=dblarr(ix,jx,kx,n_read)
@@ -224,6 +224,28 @@ print, 'ION'
         pv=create_struct(pv,["rec"], reform(rec))        
      endif
   endif
+
+     if info.flag_visc eq 1 then begin                
+print, 'visc'
+visc=dblarr(ix,jx,kx,3,n_read)
+        for np=0,n_read-1 do begin
+        files=file_search(datapath+"/"+string(time_step[np],form="(i4.4)")+"viscx.dac.*")
+	mpi_read,visc1,files,mpi_x,mpi_y,mpi_z,margin,ix_m,jx_m,kx_m
+          visc[*,*,*,0,np]=visc1
+
+        files=file_search(datapath+"/"+string(time_step[np],form="(i4.4)")+"viscy.dac.*")
+	mpi_read,visc1,files,mpi_x,mpi_y,mpi_z,margin,ix_m,jx_m,kx_m
+          visc[*,*,*,1,np]=visc1
+
+
+        files=file_search(datapath+"/"+string(time_step[np],form="(i4.4)")+"viscz.dac.*")
+	mpi_read,visc1,files,mpi_x,mpi_y,mpi_z,margin,ix_m,jx_m,kx_m
+          visc[*,*,*,2,np]=visc1
+        endfor
+        pv=create_struct(pv,["visc"], reform(visc))        
+     endif
+
+
   if (info.flag_amb mod 10) ge 1  then begin
      flag_ir=1
      catch,error
