@@ -181,6 +181,18 @@ endelse
      endif
   endif
 
+;restore the alpha coefficient
+  if (info.flag_pip ge 1) then begin
+	ac=dblarr(ix,jx,kx,n_read)
+print, 'ION'
+        for np=0,n_read-1 do begin
+        files=file_search(datapath+"/"+string(time_step[np],form="(i4.4)")+"ac.dac.*")
+	mpi_read,ac1,files,mpi_x,mpi_y,mpi_z,margin,ix_m,jx_m,kx_m
+          ac[*,*,*,np]=ac1
+        endfor
+        pv=create_struct(pv,["ac"], reform(ac))
+  endif
+
   if (((info.flag_ir mod 10) ge 1) and (info.flag_pip ge 1))  then begin
      flag_ir=1
 ;     print, 'hi'
@@ -204,6 +216,9 @@ endelse
            rec=dblarr(ix,jx,kx,n_read)
         endelse                   
 print, 'ION'
+	pv=create_struct(pv,["flag_ir"], info.flag_ir)
+	pv=create_struct(pv,["flag_ir_type"], info.flag_ir_type) 
+	pv=create_struct(pv,["T0"], info.T_norm) 
         for np=0,n_read-1 do begin
         files=file_search(datapath+"/"+string(time_step[np],form="(i4.4)")+"ion.dac.*")
 ;+ $
