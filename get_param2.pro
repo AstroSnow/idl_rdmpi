@@ -73,6 +73,10 @@ pro get_param2,path,info
         'flag_grav':begin
            in=long(strcompress(tmp2[1],/remove_all))
            info=create_struct(info,key,in)
+	end
+        'flag_visc':begin
+           in=long(strcompress(tmp2[1],/remove_all))
+           info=create_struct(info,key,in)
         end
         'flag_amb':begin
            in=long(strcompress(tmp2[1],/remove_all))
