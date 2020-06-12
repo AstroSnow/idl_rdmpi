@@ -195,17 +195,6 @@ print, 'ION'
 
   if (((info.flag_ir mod 10) ge 1) and (info.flag_pip ge 1))  then begin
      flag_ir=1
-;     print, 'hi'
-;        files=file_search(datapath+"/"+string(time_step,form="(i4.4)")+"ion.dac.*")
-;     stop
-;     print,files[0]
-;     catch,error
-;     if error ne 0 then begin
-;        print,"Error loading IR "
-;        PRINT, 'Error message: ', !ERROR_STATE.MSG
-;        flag_ir=0
-;        catch,/cancel
-;     endif 
      if flag_ir eq 1 then begin
         ir_flag=info.flag_ir mod 10
         if ir_flag eq 1 then begin
@@ -221,22 +210,23 @@ print, 'ION'
 	pv=create_struct(pv,["T0"], info.T_norm) 
         for np=0,n_read-1 do begin
         files=file_search(datapath+"/"+string(time_step[np],form="(i4.4)")+"ion.dac.*")
-;+ $
-;                          string(indgen(n_cpu),form="(i4.4)"))
-
-          ;mpi_read2,ion1,files,mpi_x,mpi_y,mpi_z,margin,ix_m,jx_m,kx_m,time_step=time_step[np]
 	mpi_read,ion1,files,mpi_x,mpi_y,mpi_z,margin,ix_m,jx_m,kx_m
           ion[*,*,*,np]=ion1
-;print,files,ion1,np
         files=file_search(datapath+"/"+string(time_step[np],form="(i4.4)")+"rec.dac.*")
-;+ $
-;                          string(indgen(n_cpu),form="(i4.4)"))
-;          mpi_read,rec1,files,mpi_x,mpi_y,mpi_z,margin,ix_m,jx_m,kx_m,time_step=time_step[np]
 	mpi_read,rec1,files,mpi_x,mpi_y,mpi_z,margin,ix_m,jx_m,kx_m
           rec[*,*,*,np]=rec1
         endfor
         pv=create_struct(pv,["ion"], reform(ion))  
         pv=create_struct(pv,["rec"], reform(rec))        
+     endif
+     if (info.flag_ir_type eq 0) then begin
+	aheat=dblarr(ix,jx,kx,n_read)
+        for np=0,n_read-1 do begin
+        files=file_search(datapath+"/"+string(time_step[np],form="(i4.4)")+"aheat.dac.*")
+	mpi_read,aheat1,files,mpi_x,mpi_y,mpi_z,margin,ix_m,jx_m,kx_m
+          aheat[*,*,*,np]=aheat1
+	endfor
+        pv=create_struct(pv,["aheat"], reform(aheat)) 
      endif
   endif
   if (info.flag_amb mod 10) ge 1  then begin
