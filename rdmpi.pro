@@ -219,6 +219,30 @@ print, 'ION'
         pv=create_struct(pv,["ion"], reform(ion))  
         pv=create_struct(pv,["rec"], reform(rec))        
      endif
+     if (info.flag_ir eq 4)then begin
+        for np=0,n_read-1 do begin
+        Nexcite=dblarr(ix,jx,kx,6,n_read)
+        files=file_search(datapath+"/"+string(time_step[np],form="(i4.4)")+"nexcite1.dac.*")
+	mpi_read,nexcite1,files,mpi_x,mpi_y,mpi_z,margin,ix_m,jx_m,kx_m
+          Nexcite[*,*,*,0,np]=(nexcite1)
+        files=file_search(datapath+"/"+string(time_step[np],form="(i4.4)")+"nexcite2.dac.*")
+	mpi_read,nexcite1,files,mpi_x,mpi_y,mpi_z,margin,ix_m,jx_m,kx_m
+          Nexcite[*,*,*,1,np]=(nexcite1)
+        files=file_search(datapath+"/"+string(time_step[np],form="(i4.4)")+"nexcite3.dac.*")
+	mpi_read,nexcite1,files,mpi_x,mpi_y,mpi_z,margin,ix_m,jx_m,kx_m
+          Nexcite[*,*,*,2,np]=(nexcite1)
+        files=file_search(datapath+"/"+string(time_step[np],form="(i4.4)")+"nexcite4.dac.*")
+	mpi_read,nexcite1,files,mpi_x,mpi_y,mpi_z,margin,ix_m,jx_m,kx_m
+          Nexcite[*,*,*,3,np]=(nexcite1)
+        files=file_search(datapath+"/"+string(time_step[np],form="(i4.4)")+"nexcite5.dac.*")
+	mpi_read,nexcite1,files,mpi_x,mpi_y,mpi_z,margin,ix_m,jx_m,kx_m
+          Nexcite[*,*,*,4,np]=(nexcite1)
+        files=file_search(datapath+"/"+string(time_step[np],form="(i4.4)")+"nexcite6.dac.*")
+	mpi_read,nexcite1,files,mpi_x,mpi_y,mpi_z,margin,ix_m,jx_m,kx_m
+          Nexcite[*,*,*,5,np]=(nexcite1)
+        endfor
+        pv=create_struct(pv,["nexcite"], reform(Nexcite)) 
+     endif
      if (info.flag_ir_type eq 0) then begin
 	aheat=dblarr(ix,jx,kx,n_read)
         for np=0,n_read-1 do begin
