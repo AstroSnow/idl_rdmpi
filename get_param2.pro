@@ -134,6 +134,18 @@ pro get_param2,path,info
            in=long(strcompress(tmp2[1],/remove_all))
            info=create_struct(info,key,in)
         end
+        'flag_rad':begin
+           in=long(strcompress(tmp2[1],/remove_all))
+           info=create_struct(info,key,in)
+        end
+        'radrhoref':begin
+           in=float(tmp2[1])
+           info=create_struct(info,key,in)
+        end
+        'rad_ts':begin
+           in=float(tmp2[1])
+           info=create_struct(info,key,in)
+        end
         else:
      endcase
   end

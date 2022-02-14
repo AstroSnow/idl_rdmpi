@@ -204,7 +204,7 @@ print, 'ION'
            ion=dblarr(ix,jx,kx,n_read)
            rec=dblarr(ix,jx,kx,n_read)
         endelse                   
-print, 'ION'
+;print, 'ION'
 	pv=create_struct(pv,["flag_ir"], info.flag_ir)
 	pv=create_struct(pv,["flag_ir_type"], info.flag_ir_type) 
 	pv=create_struct(pv,["T0"], info.T_norm) 
@@ -274,6 +274,40 @@ print, 'ION'
 ;        pv=create_struct(pv,["visc"], reform(visc))        
 ;     endif
 
+
+;restore the reference energy cooling term
+  if (info.flag_rad ge 1) then begin
+	edref=dblarr(ix,jx,kx,n_read)
+print, 'Rad_cooling'
+        for np=0,n_read-1 do begin
+        files=file_search(datapath+"/"+string(time_step[np],form="(i4.4)")+"edref_m.dac.*")
+	mpi_read,ac1,files,mpi_x,mpi_y,mpi_z,margin,ix_m,jx_m,kx_m
+          edref[*,*,*,np]=ac1
+        endfor
+        pv=create_struct(pv,["edref_p"], reform(edref))
+        if (info.flag_pip eq 1) then begin
+            for np=0,n_read-1 do begin
+            files=file_search(datapath+"/"+string(time_step[np],form="(i4.4)")+"edref_h.dac.*")
+	    mpi_read,ac1,files,mpi_x,mpi_y,mpi_z,margin,ix_m,jx_m,kx_m
+              edref[*,*,*,np]=ac1
+            endfor
+            pv=create_struct(pv,["edref_n"], reform(edref))
+        endif
+    radrho=info.radrhoref
+    radt=info.rad_ts
+   pv=create_struct(pv,["radt"], reform(radt))
+    pv=create_struct(pv,["radrho"], reform(radrho)) 
+    rlos_m=(pv.pr_p/(gm-1.0)+(pv.ro_p*pv.vx_p^2+pv.ro_p*pv.vy_p^2+pv.ro_p*pv.vz_p^2)/2.0+$
+        (pv.bx^2+pv.by^2+pv.bz^2)/2.0)-pv.edref_p
+    rlos_m=rlos_m/(pv.ro_p/pv.radrho(0))^(-1.7)/pv.radt(0)
+    pv=create_struct(pv,["rlos_p"], reform(rlos_m)) 
+    if (info.flag_pip eq 1) then begin
+        rlos_h=pv.pr_n/(gm-1.0)+(pv.ro_n*pv.vx_n^2+pv.ro_n*pv.vy_n^2+pv.ro_n*pv.vz_n^2)/2.0$
+            -pv.edref_n
+        rlos_h=rlos_h/(pv.ro_n/pv.radrho(0))^(-1.7)/pv.radt(0)
+        pv=create_struct(pv,["rlos_n"], reform(rlos_h)) 
+    endif
+  endif
 
   if (info.flag_amb mod 10) ge 1  then begin
      flag_ir=1
