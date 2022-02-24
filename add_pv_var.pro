@@ -21,6 +21,12 @@ for v=0,nv-1 do begin
 	if (vars(v) eq 'vy_n') then vartarr=[vartarr,'my_n','ro_n']
 	if (vars(v) eq 'vz_n') then vartarr=[vartarr,'mz_n','ro_n']
 	if (vars(v) eq 'pr_n') then vartarr=[vartarr,'en_n','mx_n','my_n','mz_n','ro_n']
+
+    if (vars(v) eq 'mx_p') then vartarr=[vartarr,'mx_p']
+    if (vars(v) eq 'my_p') then vartarr=[vartarr,'my_p']
+    if (vars(v) eq 'mz_p') then vartarr=[vartarr,'mz_p']
+
+    if (vars(v) eq 'en_p') then vartarr=[vartarr,'en_p']
 endfor
 vres=vartarr[uniq(vartarr,sort(vartarr))]
 ;print,'to read: ', vres
@@ -58,6 +64,12 @@ if vars(vloop) eq 'ro_p' then pv=create_struct(pv,vars(vloop),reform(ro_p))
 
 if vars(vloop) eq 'pr_n' then pv=create_struct(pv,vars(vloop),(gm-1.0)*(reform(en_n)-0.5*reform(ro_n)*(reform(mx_n/ro_n)^2+reform(my_n/ro_n)^2+reform(mz_n/ro_n)^2)))
 if vars(vloop) eq 'pr_p' then pv=create_struct(pv,vars(vloop),(gm-1.0)*(reform(en_p)-0.5*reform(ro_p)*(reform(mx_p/ro_p)^2+reform(my_p/ro_p)^2+reform(mz_p/ro_p)^2) -0.5*(reform(bx)^2+reform(by)^2+reform(bz)^2)))
+
+if vars(vloop) eq 'mx_p' then pv=create_struct(pv,vars(vloop),reform(mx_p))
+if vars(vloop) eq 'my_p' then pv=create_struct(pv,vars(vloop),reform(my_p))
+if vars(vloop) eq 'mz_p' then pv=create_struct(pv,vars(vloop),reform(mz_p))
+
+if vars(vloop) eq 'en_p' then pv=create_struct(pv,vars(vloop),reform(en_p))
 endfor
 ;  if flag_mhd eq 1 then begin
 ;     vx_p=mx_p/ro_p
