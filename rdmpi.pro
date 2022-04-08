@@ -1,5 +1,6 @@
 pro rdmpi,pv,datapath=datapath,current=current,flag_double=flag_double,$
-           time_step=time_step,flag_az=flag_az,flag_te=flag_te,var=var
+           time_step=time_step,flag_az=flag_az,flag_te=flag_te,var=var,$
+            h5read=h5read
   Compile_Opt DEFINT32  
   if(n_elements(datapath)eq 0 ) then datapath="tmp/" else datapath=datapath+"/"
   if(n_elements(current) eq 0) then current=0
@@ -8,7 +9,8 @@ pro rdmpi,pv,datapath=datapath,current=current,flag_double=flag_double,$
   if(n_elements(flag_az) eq 0) then flag_az = 0 ;; vector potential (for 2D)
   if(n_elements(flag_te) eq 0) then flag_te = 0 ;; temperature
   if(n_elements(var) eq 0) then var = [] ;; selected variables
-  
+  if(n_elements(h5read) eq 0) then h5read=0
+
   get_param2,datapath,info
   gm=info.gm
   pv=create_struct("info",info)
@@ -62,7 +64,11 @@ if (n_elements(var) ne 0) then nvar=n_elements(var)
   jx=info.jx
   kx=info.kx
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Load the grid
 
+;Using dac files
+if (h5read eq 0) then begin
   if (where(tag_names(info) eq "MPI_DOMAINS"))[0] ne -1 then begin
      mpi_x=info.mpi_domains[0]
      mpi_y=info.mpi_domains[1]
@@ -113,7 +119,8 @@ if (n_elements(var) ne 0) then nvar=n_elements(var)
   if ndim ge 2 then jx=n_elements(y) else jx=1  
   if ndim ge 3 then kx=n_elements(z) else kx=1  
   pv=create_struct(pv,"jx",jx,"kx",kx)  
-
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;Get time 
   n_cpu=mpi_x*mpi_y*mpi_z
   var_names=[]
   if time_step[0] eq -1 then begin
@@ -156,6 +163,7 @@ endelse
 ;===============================================-
 ; Non-ideal terms
 ;===============================================
+if (n_elements(var) eq 0) then begin
   if info.flag_resi ge 1 or info.flag_artvis eq 2 then begin
      flag_resi=1
      catch,error
@@ -386,6 +394,51 @@ print, 'Rad_cooling'
         pv = create_struct(pv,["j_z"],reform(j_z))
   endif
 
+endif
 
   close,/all
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+endif else begin
+    RESOLVE_ROUTINE,'h5get'
+;Read grid grom h5 files
+    ndim=pv.info.ndim
+    fpath=datapath+'/t0000.h5' 
+    fpath=datapath+"/t"+string(string(time_step),form="(i4.4)")+'.h5'
+print,'ONLY READING ONE TIME STEP FOR TESTS'   
+    readvars=['xgrid']
+    if ndim ge 2 then readvars=[readvars,'ygrid']
+    if ndim ge 3 then readvars=[readvars,'zgrid']
+    h5get,pv,fpath,readvars,1
+
+    ;Read conserved variables
+    if (n_elements(var) eq 0) then begin
+      if (flag_pip eq 1 or flag_mhd eq 0) then begin
+;         h5get,pv,fpath,["ro_n","en_n","mx_n","my_n","mz_n"],0
+         h5get,pv,fpath,["ro_n","pr_n","vx_n","vy_n","vz_n"],0
+      endif  
+      if (flag_mhd eq 1) then begin
+;         h5get,pv,fpath,["ro_p","en_p","mx_p","my_p","mz_p","bx","by","bz"],0
+         h5get,pv,fpath,["ro_p","pr_p","vx_p","vy_p","vz_p","bx","by","bz"],0
+      endif
+
+    endif else begin
+         h5get,pv,fpath,var,0
+    ;help,pv,/str
+    endelse
+
+;   Non-ideal terms
+    if n_elements(var) eq 0 then begin
+        if (info.flag_rad ge 1) then begin
+        edref=dblarr(ix,jx,kx,n_read)
+        print, 'Rad_cooling Loaded'
+        h5get,pv,fpath,["edref_m"],1
+        radrho=info.radrhoref
+        radt=info.rad_ts
+        pv=create_struct(pv,["radt"], reform(radt))
+        pv=create_struct(pv,["radrho"], reform(radrho)) 
+        endif        
+    endif
+
+endelse
 end
