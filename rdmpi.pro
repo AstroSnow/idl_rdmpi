@@ -53,8 +53,10 @@ if (n_elements(var) ne 0) then nvar=n_elements(var)
   pv=create_struct(pv,["eqs","fl_mhd","fl_pip","fl_afr"], $
                    eqs,flag_mhd,flag_pip,flag_afr)
 
-  tfile=file_search(datapath+"t.dac.*")
-  dacget0s,tfile,t,narg=time_step
+  if h5read eq 0 then begin  
+	tfile=file_search(datapath+"t.dac.*")
+	dacget0s,tfile,t,narg=time_step
+  endif
   if(eqs eq "AFR") then begin
      gridfile=file_search(datapath+"region.dac.*")
      dacget2s,gridfile,grid,narg=time_step
@@ -437,7 +439,19 @@ print,'ONLY READING ONE TIME STEP FOR TESTS'
         radt=info.rad_ts
         pv=create_struct(pv,["radt"], reform(radt))
         pv=create_struct(pv,["radrho"], reform(radrho)) 
-        endif        
+        endif   
+	if (((info.flag_ir mod 10) ge 1) and (info.flag_pip ge 1)) then begin
+	 
+		if (info.flag_ir_type eq 0) then begin
+		print, 'Losses loading'
+		h5get,pv,fpath,["aheat"],1
+		h5get,pv,fpath,["ion_loss"],1
+		endif  
+		if (info.flag_ir eq 4) then begin
+		print, 'Hydrogen levels loading'
+		h5get,pv,fpath,["nexcite1","nexcite2","nexcite3","nexcite4","nexcite5","nexcite6"],1
+		endif        
+	endif
     endif
 
 endelse
