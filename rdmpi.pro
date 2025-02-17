@@ -497,6 +497,9 @@ endif else begin
 
                 endif else begin
                      h5get,pv,fpath,var,0
+                     print,'Multiple time reads only permitted for all vars'
+                     print,'Email me if this is a required feature'
+                     stop
                 ;help,pv,/str
                 endelse
                 
@@ -514,6 +517,26 @@ endif else begin
                   if (flag_pip eq 1 or flag_mhd eq 0) then begin
             ;         h5get,pv,fpath,["ro_n","en_n","mx_n","my_n","mz_n"],0
                      h5get,pv,fpath,["ro_n","pr_n","vx_n","vy_n","vz_n"],0
+                     if ndim eq 1 then tmp_ro_n(*,0,0,rt)=pv.ro_n
+                     if ndim eq 2 then tmp_ro_n(*,*,0,rt)=pv.ro_n
+                     if ndim eq 3 then tmp_ro_n(*,*,*,rt)=pv.ro_n
+                     
+                     if ndim eq 1 then tmp_vx_n(*,0,0,rt)=pv.vx_n
+                     if ndim eq 2 then tmp_vx_n(*,*,0,rt)=pv.vx_n
+                     if ndim eq 3 then tmp_vx_n(*,*,*,rt)=pv.vx_n
+                     
+                     if ndim eq 1 then tmp_vy_n(*,0,0,rt)=pv.vy_n
+                     if ndim eq 2 then tmp_vy_n(*,*,0,rt)=pv.vy_n
+                     if ndim eq 3 then tmp_vy_n(*,*,*,rt)=pv.vy_n
+                     
+                     if ndim eq 1 then tmp_vz_n(*,0,0,rt)=pv.vz_n
+                     if ndim eq 2 then tmp_vz_n(*,*,0,rt)=pv.vz_n
+                     if ndim eq 3 then tmp_vz_n(*,*,*,rt)=pv.vz_n
+                     
+                     if ndim eq 1 then tmp_pr_n(*,0,0,rt)=pv.pr_n
+                     if ndim eq 2 then tmp_pr_n(*,*,0,rt)=pv.pr_n
+                     if ndim eq 3 then tmp_pr_n(*,*,*,rt)=pv.pr_n
+                     
                   endif  
                   if (flag_mhd eq 1) then begin
             ;         h5get,pv,fpath,["ro_p","en_p","mx_p","my_p","mz_p","bx","by","bz"],0
@@ -565,14 +588,24 @@ endif else begin
         pv=create_struct(pv,'xgrid',tmp.xgrid)
         if ndim ge 2 then pv=create_struct(pv,'ygrid',tmp.ygrid)
         if ndim ge 3 then pv=create_struct(pv,'zgrid',tmp.zgrid)
-        pv=create_struct(pv,'ro_p',reform(tmp_ro_p))
-        pv=create_struct(pv,'vx_p',reform(tmp_vx_p))
-        pv=create_struct(pv,'vy_p',reform(tmp_vy_p))
-        pv=create_struct(pv,'vz_p',reform(tmp_vz_p))
-        pv=create_struct(pv,'pr_p',reform(tmp_pr_p))
-        pv=create_struct(pv,'bx',reform(tmp_bx))
-        pv=create_struct(pv,'by',reform(tmp_by))
-        pv=create_struct(pv,'bz',reform(tmp_bz))
+        
+        if (flag_pip eq 1 or flag_mhd eq 0) then begin
+            pv=create_struct(pv,'ro_n',reform(tmp_ro_n))
+            pv=create_struct(pv,'vx_n',reform(tmp_vx_n))
+            pv=create_struct(pv,'vy_n',reform(tmp_vy_n))
+            pv=create_struct(pv,'vz_n',reform(tmp_vz_n))
+            pv=create_struct(pv,'pr_n',reform(tmp_pr_n))
+        endif 
+        if (flag_mhd eq 1) then begin
+            pv=create_struct(pv,'ro_p',reform(tmp_ro_p))
+            pv=create_struct(pv,'vx_p',reform(tmp_vx_p))
+            pv=create_struct(pv,'vy_p',reform(tmp_vy_p))
+            pv=create_struct(pv,'vz_p',reform(tmp_vz_p))
+            pv=create_struct(pv,'pr_p',reform(tmp_pr_p))
+            pv=create_struct(pv,'bx',reform(tmp_bx))
+            pv=create_struct(pv,'by',reform(tmp_by))
+            pv=create_struct(pv,'bz',reform(tmp_bz))
+        endif
     endelse
 
 endelse
