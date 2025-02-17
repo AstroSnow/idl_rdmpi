@@ -405,54 +405,175 @@ endif else begin
     RESOLVE_ROUTINE,'h5get'
 ;Read grid grom h5 files
     ndim=pv.info.ndim
-    fpath=datapath+'/t0000.h5' 
-    fpath=datapath+"/t"+string(string(time_step),form="(i4.4)")+'.h5'
-print,'ONLY READING ONE TIME STEP FOR TESTS'   
-    readvars=['xgrid']
-    if ndim ge 2 then readvars=[readvars,'ygrid']
-    if ndim ge 3 then readvars=[readvars,'zgrid']
-    h5get,pv,fpath,readvars,1
+    
+    if N_elements(time_step) eq 1 then begin
+        fpath=datapath+"/t"+string(string(time_step),form="(i4.4)")+'.h5'
+        print,'READING ONE TIME STEP'   
+        readvars=['xgrid']
+        if ndim ge 2 then readvars=[readvars,'ygrid']
+        if ndim ge 3 then readvars=[readvars,'zgrid']
+        h5get,pv,fpath,readvars,1
 
-    ;Read conserved variables
-    if (n_elements(var) eq 0) then begin
-      if (flag_pip eq 1 or flag_mhd eq 0) then begin
-;         h5get,pv,fpath,["ro_n","en_n","mx_n","my_n","mz_n"],0
-         h5get,pv,fpath,["ro_n","pr_n","vx_n","vy_n","vz_n"],0
-      endif  
-      if (flag_mhd eq 1) then begin
-;         h5get,pv,fpath,["ro_p","en_p","mx_p","my_p","mz_p","bx","by","bz"],0
-         h5get,pv,fpath,["ro_p","pr_p","vx_p","vy_p","vz_p","bx","by","bz"],0
-      endif
+        ;Read conserved variables
+        if (n_elements(var) eq 0) then begin
+          if (flag_pip eq 1 or flag_mhd eq 0) then begin
+    ;         h5get,pv,fpath,["ro_n","en_n","mx_n","my_n","mz_n"],0
+             h5get,pv,fpath,["ro_n","pr_n","vx_n","vy_n","vz_n"],0
+          endif  
+          if (flag_mhd eq 1) then begin
+    ;         h5get,pv,fpath,["ro_p","en_p","mx_p","my_p","mz_p","bx","by","bz"],0
+             h5get,pv,fpath,["ro_p","pr_p","vx_p","vy_p","vz_p","bx","by","bz"],0
+          endif
 
+        endif else begin
+             h5get,pv,fpath,var,0
+        ;help,pv,/str
+        endelse
+
+    ;   Non-ideal terms
+        if n_elements(var) eq 0 then begin
+            if (info.flag_rad ge 1) then begin
+            edref=dblarr(ix,jx,kx,n_read)
+            print, 'Rad_cooling Loaded'
+            h5get,pv,fpath,["edref_m"],1
+            radrho=info.radrhoref
+            radt=info.rad_ts
+            pv=create_struct(pv,["radt"], reform(radt))
+            pv=create_struct(pv,["radrho"], reform(radrho)) 
+            endif   
+	    if (((info.flag_ir mod 10) ge 1) and (info.flag_pip ge 1)) then begin
+	     
+		    if (info.flag_ir_type eq 0) then begin
+		    print, 'Losses loading'
+		    h5get,pv,fpath,["aheat"],1
+		    h5get,pv,fpath,["ion_loss"],1
+		    endif  
+		    if (info.flag_ir eq 4) then begin
+		    print, 'Hydrogen levels loading'
+		    h5get,pv,fpath,["nexcite1","nexcite2","nexcite3","nexcite4","nexcite5","nexcite6"],1
+		    endif        
+	    endif
+        endif
     endif else begin
-         h5get,pv,fpath,var,0
-    ;help,pv,/str
-    endelse
+    
+        print,'Reading times'
+        for rt = 0,N_elements(time_step)-1 do begin
+            print,time_step(rt)
+            ;ndim=pv.info.ndim
+            fpath=datapath+"/t"+string(string(time_step(rt)),form="(i4.4)")+'.h5'
+            
+            if rt eq 0 then begin   
+                readvars=['xgrid']
+                if ndim ge 2 then readvars=[readvars,'ygrid']
+                if ndim ge 3 then readvars=[readvars,'zgrid']
+                h5get,pv,fpath,readvars,1
 
-;   Non-ideal terms
-    if n_elements(var) eq 0 then begin
-        if (info.flag_rad ge 1) then begin
-        edref=dblarr(ix,jx,kx,n_read)
-        print, 'Rad_cooling Loaded'
-        h5get,pv,fpath,["edref_m"],1
-        radrho=info.radrhoref
-        radt=info.rad_ts
-        pv=create_struct(pv,["radt"], reform(radt))
-        pv=create_struct(pv,["radrho"], reform(radrho)) 
-        endif   
-	if (((info.flag_ir mod 10) ge 1) and (info.flag_pip ge 1)) then begin
-	 
-		if (info.flag_ir_type eq 0) then begin
-		print, 'Losses loading'
-		h5get,pv,fpath,["aheat"],1
-		h5get,pv,fpath,["ion_loss"],1
-		endif  
-		if (info.flag_ir eq 4) then begin
-		print, 'Hydrogen levels loading'
-		h5get,pv,fpath,["nexcite1","nexcite2","nexcite3","nexcite4","nexcite5","nexcite6"],1
-		endif        
-	endif
-    endif
+                ;Read conserved variables
+                if (n_elements(var) eq 0) then begin
+                  if (flag_pip eq 1 or flag_mhd eq 0) then begin
+            ;         h5get,pv,fpath,["ro_n","en_n","mx_n","my_n","mz_n"],0
+                     h5get,pv,fpath,["ro_n","pr_n","vx_n","vy_n","vz_n"],0
+                  endif  
+                  if (flag_mhd eq 1) then begin
+            ;         h5get,pv,fpath,["ro_p","en_p","mx_p","my_p","mz_p","bx","by","bz"],0
+                     h5get,pv,fpath,["ro_p","pr_p","vx_p","vy_p","vz_p","bx","by","bz"],0
+                     pv_full=create_struct("info",0)
+                     n_ygrid=1
+                     n_zgrid=1
+                     n_xgrid=n_elements(pv.xgrid)
+                     if ndim ge 2 then n_ygrid=n_elements(pv.ygrid)
+                     if ndim ge 3 then n_zgrid=n_elements(pv.zgrid)
+                     tmp_ro_p=dblarr(n_xgrid,n_ygrid,n_zgrid,n_read)
+                     tmp_ro_p(*,*,*,0)=pv.ro_p
+                     ;tmp_ro_p=reform(tmp_ro_p)
+                     tmp_vx_p=dblarr(n_xgrid,n_ygrid,n_zgrid,n_read)
+                     tmp_vy_p=dblarr(n_xgrid,n_ygrid,n_zgrid,n_read)
+                     tmp_vz_p=dblarr(n_xgrid,n_ygrid,n_zgrid,n_read)
+                     tmp_pr_p=dblarr(n_xgrid,n_ygrid,n_zgrid,n_read)
+                     tmp_bx=dblarr(n_xgrid,n_ygrid,n_zgrid,n_read)
+                     tmp_by=dblarr(n_xgrid,n_ygrid,n_zgrid,n_read)
+                     tmp_bz=dblarr(n_xgrid,n_ygrid,n_zgrid,n_read)
+                  endif
+
+                endif else begin
+                     h5get,pv,fpath,var,0
+                ;help,pv,/str
+                endelse
+                
+                
+            endif else begin
+                pv=0
+                pv=create_struct("info",0)
+                readvars=['xgrid']
+                if ndim ge 2 then readvars=[readvars,'ygrid']
+                if ndim ge 3 then readvars=[readvars,'zgrid']
+                h5get,pv,fpath,readvars,1
+            
+                ;Read conserved variables
+                if (n_elements(var) eq 0) then begin
+                  if (flag_pip eq 1 or flag_mhd eq 0) then begin
+            ;         h5get,pv,fpath,["ro_n","en_n","mx_n","my_n","mz_n"],0
+                     h5get,pv,fpath,["ro_n","pr_n","vx_n","vy_n","vz_n"],0
+                  endif  
+                  if (flag_mhd eq 1) then begin
+            ;         h5get,pv,fpath,["ro_p","en_p","mx_p","my_p","mz_p","bx","by","bz"],0
+                     h5get,pv,fpath,["ro_p","pr_p","vx_p","vy_p","vz_p","bx","by","bz"],0
+                     if ndim eq 1 then tmp_ro_p(*,0,0,rt)=pv.ro_p
+                     if ndim eq 2 then tmp_ro_p(*,*,0,rt)=pv.ro_p
+                     if ndim eq 3 then tmp_ro_p(*,*,*,rt)=pv.ro_p
+                     
+                     if ndim eq 1 then tmp_vx_p(*,0,0,rt)=pv.vx_p
+                     if ndim eq 2 then tmp_vx_p(*,*,0,rt)=pv.vx_p
+                     if ndim eq 3 then tmp_vx_p(*,*,*,rt)=pv.vx_p
+                     
+                     if ndim eq 1 then tmp_vy_p(*,0,0,rt)=pv.vy_p
+                     if ndim eq 2 then tmp_vy_p(*,*,0,rt)=pv.vy_p
+                     if ndim eq 3 then tmp_vy_p(*,*,*,rt)=pv.vy_p
+                     
+                     if ndim eq 1 then tmp_vz_p(*,0,0,rt)=pv.vz_p
+                     if ndim eq 2 then tmp_vz_p(*,*,0,rt)=pv.vz_p
+                     if ndim eq 3 then tmp_vz_p(*,*,*,rt)=pv.vz_p
+                     
+                     if ndim eq 1 then tmp_pr_p(*,0,0,rt)=pv.pr_p
+                     if ndim eq 2 then tmp_pr_p(*,*,0,rt)=pv.pr_p
+                     if ndim eq 3 then tmp_pr_p(*,*,*,rt)=pv.pr_p
+                     
+                     if ndim eq 1 then tmp_bx(*,0,0,rt)=pv.bx
+                     if ndim eq 2 then tmp_bx(*,*,0,rt)=pv.bx
+                     if ndim eq 3 then tmp_bx(*,*,*,rt)=pv.bx
+                     
+                     if ndim eq 1 then tmp_by(*,0,0,rt)=pv.by
+                     if ndim eq 2 then tmp_by(*,*,0,rt)=pv.by
+                     if ndim eq 3 then tmp_by(*,*,*,rt)=pv.by
+                     
+                     if ndim eq 1 then tmp_bz(*,0,0,rt)=pv.bz
+                     if ndim eq 2 then tmp_bz(*,*,0,rt)=pv.bz
+                     if ndim eq 3 then tmp_bz(*,*,*,rt)=pv.bz
+                     
+                     
+                  endif
+
+                endif else begin
+                     h5get,pv,fpath,var,0
+                ;help,pv,/str
+                endelse
+            
+            endelse
+        endfor
+        tmp=pv
+        pv=create_struct("info",0)
+        pv=create_struct(pv,'xgrid',tmp.xgrid)
+        if ndim ge 2 then pv=create_struct(pv,'ygrid',tmp.ygrid)
+        if ndim ge 3 then pv=create_struct(pv,'zgrid',tmp.zgrid)
+        pv=create_struct(pv,'ro_p',reform(tmp_ro_p))
+        pv=create_struct(pv,'vx_p',reform(tmp_vx_p))
+        pv=create_struct(pv,'vy_p',reform(tmp_vy_p))
+        pv=create_struct(pv,'vz_p',reform(tmp_vz_p))
+        pv=create_struct(pv,'pr_p',reform(tmp_pr_p))
+        pv=create_struct(pv,'bx',reform(tmp_bx))
+        pv=create_struct(pv,'by',reform(tmp_by))
+        pv=create_struct(pv,'bz',reform(tmp_bz))
+    endelse
 
 endelse
 end
