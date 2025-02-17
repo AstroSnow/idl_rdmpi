@@ -4,7 +4,7 @@ tmp=create_struct("info",0)
 
 if grid eq 0 then begin
 
-    print,'Gamma assumed as 5/3'
+    ;print,'Gamma assumed as 5/3'
     gm=5.0/3.0
     ;make array for needed components
     nv=n_elements(var)
