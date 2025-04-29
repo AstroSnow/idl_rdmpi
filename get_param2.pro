@@ -146,6 +146,10 @@ pro get_param2,path,info
            in=float(tmp2[1])
            info=create_struct(info,key,in)
         end
+        'nlevels':begin
+           in=float(tmp2[1])
+           info=create_struct(info,key,in)
+        end
         else:
      endcase
   end
