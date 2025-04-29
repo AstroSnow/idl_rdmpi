@@ -47,6 +47,7 @@ pro rdmpi,pv,datapath=datapath,current=current,flag_double=flag_double,$
      end
   end
 
+;print,fix(info.nlevels)
 ;Snow
 if (n_elements(var) ne 0) then nvar=n_elements(var)
   
@@ -432,7 +433,7 @@ endif else begin
 
     ;   Non-ideal terms
         if n_elements(var) eq 0 then begin
-            if (info.flag_rad ge 1) then begin
+            if (info.flag_rad eq 1) then begin
             edref=dblarr(ix,jx,kx,n_read)
             print, 'Rad_cooling Loaded'
             h5get,pv,fpath,["edref_m"],1
@@ -450,7 +451,11 @@ endif else begin
 		    endif  
 		    if (info.flag_ir eq 4) then begin
 		    print, 'Hydrogen levels loading'
-		    h5get,pv,fpath,["nexcite1","nexcite2","nexcite3","nexcite4","nexcite5","nexcite6"],1
+              if (fix(info.nlevels) eq 1) then h5get,pv,fpath,["nexcite1","nexcite2"],1
+              if (fix(info.nlevels) eq 2) then h5get,pv,fpath,["nexcite1","nexcite2","nexcite3"],1
+              if (fix(info.nlevels) eq 3) then h5get,pv,fpath,["nexcite1","nexcite2","nexcite3","nexcite4"],1
+              if (fix(info.nlevels) eq 4) then h5get,pv,fpath,["nexcite1","nexcite2","nexcite3","nexcite4","nexcite5"],1
+              if (fix(info.nlevels) eq 5) then h5get,pv,fpath,["nexcite1","nexcite2","nexcite3","nexcite4","nexcite5","nexcite6"],1
 		    endif        
 	    endif
         endif
