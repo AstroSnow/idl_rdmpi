@@ -450,6 +450,8 @@ endif else begin
 		    h5get,pv,fpath,["ion_loss"],1
 		    endif  
 		    if (info.flag_ir eq 4) then begin
+              h5get,pv,fpath,["rec","ion"],1
+              h5get,pv,fpath,["rec_rad","ion_rad"],1
 		    print, 'Hydrogen levels loading'
               if (fix(info.nlevels) eq 1) then h5get,pv,fpath,["nexcite1","nexcite2"],1
               if (fix(info.nlevels) eq 2) then h5get,pv,fpath,["nexcite1","nexcite2","nexcite3"],1
@@ -498,6 +500,13 @@ endif else begin
                      tmp_bx=dblarr(n_xgrid,n_ygrid,n_zgrid,n_read)
                      tmp_by=dblarr(n_xgrid,n_ygrid,n_zgrid,n_read)
                      tmp_bz=dblarr(n_xgrid,n_ygrid,n_zgrid,n_read)
+                     tmp_ro_n=dblarr(n_xgrid,n_ygrid,n_zgrid,n_read)
+                     tmp_ro_n(*,*,*,0)=pv.ro_n
+                     ;tmp_ro_p=reform(tmp_ro_p)
+                     tmp_vx_n=dblarr(n_xgrid,n_ygrid,n_zgrid,n_read)
+                     tmp_vy_n=dblarr(n_xgrid,n_ygrid,n_zgrid,n_read)
+                     tmp_vz_n=dblarr(n_xgrid,n_ygrid,n_zgrid,n_read)
+                     tmp_pr_n=dblarr(n_xgrid,n_ygrid,n_zgrid,n_read)
                   endif
 
                 endif else begin
